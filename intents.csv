@@ -1,0 +1,17 @@
+text,intent
+
+what time is it,get_time
+tell me the time,get_time
+give me the time,get_time
+current time,get_time
+
+play some music,play_music
+start music,play_music
+put on a song,play_music
+
+open calculator,open_calculator
+launch calculator,open_calculator
+
+what is the date,get_date
+what date is today,get_date
+current date,get_date
