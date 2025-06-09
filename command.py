@@ -3,10 +3,10 @@
 
 import os
 import numpy as np
-import pandas as pd
+import pandas as pd #pip install pandas
 import pickle
 import importlib.util
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer # pip install sentence-transformers
 from sklearn.metrics.pairwise import cosine_similarity
 
 # File paths
