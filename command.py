@@ -9,10 +9,12 @@ import importlib.util
 from sentence_transformers import SentenceTransformer # pip install sentence-transformers
 from sklearn.metrics.pairwise import cosine_similarity
 
+from tts_controller import speak
+
 # File paths
 CSV_FILE = "intents.csv"
-EMBEDDINGS_FILE = "intent_embeddings.npy"
-LABELS_FILE = "intent_labels.pkl"
+EMBEDDINGS_FILE = "intents/intent_embeddings.npy"
+LABELS_FILE = "intents/intent_labels.pkl"
 INTENT_FOLDER = "intents"
 
 # Load sentence embedding model
@@ -63,7 +65,7 @@ def run_intent_action(intent_name):
         spec.loader.exec_module(intent_module)
 
         if hasattr(intent_module, "run"):
-            intent_module.run()
+            speak(intent_module.run())
         else:
             print(f"[command.py]: '{intent_name}.py' found, but no run() function is defined.")
     except Exception as e:
@@ -81,7 +83,7 @@ def handle_command(text, similarity_threshold=0.6):
     print(f"[command.py]:Best match: {best_intent} (score: {max_score:.3f})")
 
     if max_score < similarity_threshold:
-        print("I’m not sure what you mean.")
+        speak("I’m not sure what you mean.")
         return
 
     run_intent_action(best_intent)

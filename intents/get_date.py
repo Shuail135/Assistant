@@ -1,5 +1,5 @@
 from datetime import datetime
 
-
 def run():
-    print(datetime.now().strftime("Today is %A, %B %d, %Y"))
+    print("Today is:" + datetime.now().strftime("Today is %A, %B %d, %Y"))
+    return "Today is:" + datetime.now().strftime("Today is %A, %B %d, %Y")
