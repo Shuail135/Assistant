@@ -82,3 +82,4 @@ The assistant will start taking voice/text commands and respond using your custo
   - Tell Time
   - Tell Date
 - Will build a local speech to text(or even your only voice recognization lets see)
+- Perhaps a GUI for the settings to prevent the user from touching the code 
