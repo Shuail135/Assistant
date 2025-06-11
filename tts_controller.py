@@ -119,7 +119,7 @@ def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, 
         final = wave_out[:len(y_hp)] + y_hp[:len(wave_out)]
         final = final / normalize
 
-        print(f"[TTS] Speaking: \"{text}\"")
+        # print(f"[TTS] Speaking: \"{text}\"")
         silence = np.zeros(int(h2.sampling_rate * 0.3), dtype=np.int16)
         final = np.concatenate([silence, final.astype(np.int16), silence])
 
