@@ -77,4 +77,8 @@ The assistant will start taking voice/text commands and respond using your custo
 ## Current Development
 
 - Still in progress, lacking in functionality.
+  - Current intents:
+  - Play Music
+  - Tell Time
+  - Tell Date
 - Will build a local speech to text(or even your only voice recognization lets see)
