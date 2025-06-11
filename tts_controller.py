@@ -14,7 +14,7 @@ from TTS_TT2.hparams import create_hparams
 from TTS_TT2.model import Tacotron2
 from TTS_TT2.text import text_to_sequence
 
-tacotron2_path = "tts_models/GLaDOS-146"
+tacotron2_path = "tts_models/GLaDOS-146" #change the voice model path here
 hifigan_path = "tts_models/g_02500000"
 superres_path = "tts_models/Superres_Twilight_33000"
 hifigan_config = "hifi_gan/config_v1.json"
