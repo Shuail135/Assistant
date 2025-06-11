@@ -81,5 +81,6 @@ The assistant will start taking voice/text commands and respond using your custo
   - Play Music
   - Tell Time
   - Tell Date
+  - Calculator(Can calculate from english math)
 - Will build a local speech to text(or even your only voice recognization lets see)
 - Perhaps a GUI for the settings to prevent the user from touching the code 

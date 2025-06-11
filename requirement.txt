@@ -57,3 +57,4 @@ urllib3==2.4.0
 wheel==0.38.4
 youtube-search-python==1.6.6
 httpx==0.23.3
+number-parser==0.3.2
