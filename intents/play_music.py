@@ -42,7 +42,7 @@ music_dispatch = {
     3: play_tidal # not implemented
 }
 
-music_application=0
+music_application=0 # Choose music application here
 
 def run(request_input):
     song = request_input("What song would you like to play ")
