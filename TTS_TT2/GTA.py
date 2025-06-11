@@ -1,7 +1,4 @@
 import os
-import time
-import argparse
-import math
 from numpy import finfo
 import numpy as np
 
@@ -11,7 +8,6 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.nn import DataParallel
 from torch.utils.data import DataLoader
 
-from fp16_optimizer import FP16_Optimizer
 
 from model import Tacotron2
 from data_utils import TextMelLoader, TextMelCollate
@@ -25,13 +21,6 @@ def batchnorm_to_float(module):
     for child in module.children():
         batchnorm_to_float(child)
     return module
-
-
-def reduce_tensor(tensor, num_gpus):
-    rt = tensor.clone()
-    torch.distributed.all_reduce(rt, op=torch.distributed.reduce_op.SUM)
-    rt /= num_gpus
-    return rt
 
 
 def init_distributed(hparams, n_gpus, rank, group_name):
@@ -152,33 +141,3 @@ def GTA_Synthesis(output_directory, checkpoint_path, n_gpus,
             np.save(mel_path, mel_outputs_postnet)
         #print('computed and saved GTA melspectrogram {}'.format(i))
     f.close()
-
-if __name__ == '__main__':
-    # run example
-    # python GTA.py -o=nam-h -c=nam_h_ep8/checkpoint_50000
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--output_directory', type=str,
-                        help='directory to save checkpoints')
-    parser.add_argument('-c', '--checkpoint_path', type=str, default=None,
-                        required=False, help='checkpoint path')
-    parser.add_argument('--n_gpus', type=int, default=1,
-                        required=False, help='number of gpus')
-    parser.add_argument('--rank', type=int, default=0,
-                        required=False, help='rank of current gpu')
-    parser.add_argument('--group_name', type=str, default='group_name',
-                        required=False, help='Distributed group name')
-    parser.add_argument('--hparams', type=str, required=False, help='comma separated name=value pairs')
-
-    args = parser.parse_args()
-    hparams = create_hparams(args.hparams)
-
-    torch.backends.cudnn.enabled = hparams.cudnn_enabled
-    torch.backends.cudnn.benchmark = hparams.cudnn_benchmark
-
-    print("FP16 Run:", hparams.fp16_run)
-    print("Dynamic Loss Scaling:", hparams.dynamic_loss_scaling)
-    print("Distributed Run:", hparams.distributed_run)
-    print("cuDNN Enabled:", hparams.cudnn_enabled)
-    print("cuDNN Benchmark:", hparams.cudnn_benchmark)
-
-    GTA_Synthesis(args.output_directory, args.checkpoint_path, args.n_gpus, args.rank, args.group_name, hparams)
