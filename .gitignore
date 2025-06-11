@@ -1,0 +1,9 @@
+
+.DS_Store
+/__pycache__
+__pycache__/command.cpython-310.pyc
+/hifi_gan/__pycache__
+/intents/__pycache__
+/TTS_TT2/__pycache__
+/TTS_TT2/text/__pycache__
+tts_models/GLaDOS-146

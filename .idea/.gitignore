@@ -2,7 +2,11 @@
 /shelf/
 /workspace.xml
 ../venv
-../__pycache__
-../hifi_gan/__pycache__
-../intents/__pycache__
-../TTS_TT2/__pycache__
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.DS_Store
+Thumbs.db
