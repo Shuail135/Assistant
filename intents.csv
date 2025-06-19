@@ -15,3 +15,6 @@ launch calculator,open_calculator
 what is the date,get_date
 what date is today,get_date
 current date,get_date
+
+open settings,open_settings
+open configuration,open_settings

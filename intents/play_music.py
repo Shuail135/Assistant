@@ -2,6 +2,8 @@ from youtubesearchpython import VideosSearch
 import webbrowser
 import urllib.parse
 
+from settings.settings_config import get_settings
+
 # YouTube Music handler
 #basically search it from youtube(youtubesearchpython) and copy it to youtube music
 def play_youtube_music(song):
@@ -42,7 +44,7 @@ music_dispatch = {
     3: play_tidal # not implemented
 }
 
-music_application=0 # Choose music application here
+music_application=get_settings()["music_provider"] # Choose music application here
 
 def run(request_input):
     song = request_input("What song would you like to play ")

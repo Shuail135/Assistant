@@ -1,10 +1,10 @@
 {
     "theme": "dark",
-    "music_volume": 50,
-    "quit_command": "Quit",
-    "similarity_threshold": 0.6,
-    "music_path": "",
-    "volume": 0.92,
+    "volume": 0.7369877584447578,
     "music_provider": 0,
-    "file_import_path": "tts_models/GLaDOS-146"
+    "quit_command": "Quit",
+    "file_import_path": "tts_models/GLaDOS-146",
+    "similarity_threshold": 0.6,
+    "music_volume": 50,
+    "music_path": ""
 }

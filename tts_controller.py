@@ -15,14 +15,15 @@ from TTS_TT2.model import Tacotron2
 from TTS_TT2.text import text_to_sequence
 
 from settings.settings_config import get_settings
-settings = get_settings()
 
-tacotron2_path = "tts_models/GLaDOS-146"  # change the voice model path here
+tacotron2_path = get_settings()["file_import_path"]  # change the voice model path here
 hifigan_path = "tts_models/g_02500000"
 superres_path = "tts_models/Superres_Twilight_33000"
 hifigan_config = "hifi_gan/config_v1.json"
 superres_config = "hifi_gan/config_32k.json"
 CMU_DICT_PATH = "cmudict/merged.dict.txt"
+
+# TODO: Throw exception if not valid
 
 def load_hifigan(model_path, config_path):
     with open(config_path) as f:
@@ -86,7 +87,7 @@ def ARPA(text, cmu_dict, punctuation=r"!?,.;", EOS_Token=True):
         output += ";"
     return output
 
-def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True, volume=settings["volume"]):
+def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True, volume=get_settings()["volume"]):
     if use_pronunciation:
         text = ARPA(text, cmu_dict)
     tacotron2.decoder.max_decoder_steps = max_duration * 80
