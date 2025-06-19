@@ -9,6 +9,10 @@ from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.tab import MDTabs
 from kivy.metrics import dp
+from kivy.core.window import Window
+from kivy.uix.widget import Widget
+
+Window.size = (350, 600)
 
 from settings.settings_config import get_settings, save_settings
 
@@ -55,6 +59,7 @@ class AdvancedTab(MDBoxLayout, MDTabsBase):
         self.add_widget(self.screen.similarity_input)
 
 
+
 class SettingsScreen(MDBoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation="vertical", **kwargs)
@@ -78,7 +83,7 @@ class SettingsScreen(MDBoxLayout):
 
         # Volume
         self.volume_slider = MDSlider(
-            min=0, max=1, value=self.settings["volume"], step=0.01,
+            min=0, max=100, value=self.settings["volume"], step=1,
             size_hint_y=None, height=dp(40)
         )
 
@@ -116,10 +121,17 @@ class SettingsScreen(MDBoxLayout):
         self.tabs.add_widget(AdvancedTab(self, title="Advanced"))
         self.add_widget(self.tabs)
 
-        # Save Button
-        self.save_button = MDRaisedButton(text="Save Settings", on_release=self.save_all, pos_hint={"center_x": 0.5})
-        self.add_widget(self.save_button)
+        bottom_spacer = Widget(size_hint_y=None, height=dp(10))
 
+        # Save Button
+        self.save_button = MDRaisedButton(
+            text="Save Settings",
+            on_release=self.save_all,
+            pos_hint={"center_x": 0.5}
+        )
+
+        self.add_widget(self.save_button)
+        self.add_widget(bottom_spacer)
     def open_theme_menu(self, instance, touch):
         if instance.collide_point(*touch.pos):
             self.theme_spinner.caller = instance
@@ -151,7 +163,7 @@ class SettingsScreen(MDBoxLayout):
 
     def save_all(self, _instance):
         self.settings["theme"] = self.theme_text.text
-        self.settings["volume"] = self.volume_slider.value
+        self.settings["volume"] = self.volume_slider.value / 10
         self.settings["music_provider"] = music_text_to_id.get(self.music_provider_field.text, 0)
         self.settings["quit_command"] = self.quit_command.text
         self.settings["file_import_path"] = self.file_path.text

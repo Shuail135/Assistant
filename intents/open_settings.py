@@ -11,3 +11,4 @@ def run_gui_standalone():
 
 def run(request_input):
     run_gui_standalone()
+    return "Opening Settings..."
