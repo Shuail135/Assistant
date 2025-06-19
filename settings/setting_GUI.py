@@ -83,7 +83,7 @@ class SettingsScreen(MDBoxLayout):
 
         # Volume
         self.volume_slider = MDSlider(
-            min=0, max=100, value=self.settings["volume"], step=1,
+            min=0, max=100, value=self.settings["volume"]*100, step=1,
             size_hint_y=None, height=dp(40)
         )
 
@@ -163,7 +163,7 @@ class SettingsScreen(MDBoxLayout):
 
     def save_all(self, _instance):
         self.settings["theme"] = self.theme_text.text
-        self.settings["volume"] = self.volume_slider.value / 10
+        self.settings["volume"] = self.volume_slider.value / 100
         self.settings["music_provider"] = music_text_to_id.get(self.music_provider_field.text, 0)
         self.settings["quit_command"] = self.quit_command.text
         self.settings["file_import_path"] = self.file_path.text

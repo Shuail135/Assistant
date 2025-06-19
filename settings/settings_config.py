@@ -2,6 +2,8 @@
 import json
 import os
 
+# TODO: real time saving current has bug due to thread issue
+
 SETTINGS_PATH = os.path.join(os.path.dirname(__file__), "settings.json")
 
 _default_settings = {

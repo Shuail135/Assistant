@@ -2,7 +2,8 @@
 # Runs in threads so that it can handle and take command at the same time. handle_command will haul when
 # requires input in take_command
 
-
+import json
+import os
 import threading
 import queue
 import sys
@@ -48,6 +49,18 @@ def command_worker():
             break
         handle_command(command, request_input, get_settings()["similarity_threshold"])
         command_queue.task_done()
+
+SETTINGS_PATH = os.path.join(os.path.dirname(__file__), "settings.json")
+
+_default_settings = {
+    "theme": "light",
+    "volume": 1.0,
+    "music_provider": 0,
+    "quit_command": "Quit",
+    "file_import_path": "tts_models/GLaDOS-146",
+    "similarity_threshold": 0.6
+}
+
 
 if __name__ == "__main__":
 
