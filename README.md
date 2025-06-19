@@ -33,23 +33,10 @@ Since this project is CPU-only, no CUDA or GPU configuration is necessary.
 - Train or download a pre-trained Tacotron 2 model (ensure it's compatible with your current TTS pipeline).
 - Place your Tacotron 2 checkpoint file inside the `tts_model/` directory.
 
-Example:
-
-```bash
-tts_model/custom_tacotron2_checkpoint.pth
-```
-
 ### 4️⃣ Update Tacotron 2 Model Path
 
-- Open `tts_controller.py`.
-- Locate the variable where the Tacotron 2 model path is specified.
-- Modify the path to point to your custom model.
-
-Example:
-
-```python
-tacotron_path = 'tts_model/custom_tacotron2_checkpoint.pth' #change the voice model path here
-```
+- Run `settings.py`.
+- Update tts model path
 
 ### 5️⃣ Run the Voice Assistant
 
@@ -70,7 +57,7 @@ The assistant will start taking voice/text commands and respond using your custo
 - ✅ Everything operates locally.
 - ✅ The model will try to understand your intent through your text, and find the most suitable intent for you.
 - ⚠️ Tacotron 2 models can still consume significant CPU and RAM resources. (I did try to reduce usage... A LOT...)
-- ⚠️ This guide assumes you already have a trained Tacotron 2 model; trained model is not included.
+- ⚠️ This README assumes you already have a trained Tacotron 2 model; trained model is not included.
 
 ---
 
@@ -82,5 +69,6 @@ The assistant will start taking voice/text commands and respond using your custo
   - Tell Time
   - Tell Date
   - Calculator(Can calculate from english math)
+  - Open Settings
+- With GUI settings
 - Will build a local speech to text(or even your only voice recognization lets see)
-- Perhaps a GUI for the settings to prevent the user from touching the code 
