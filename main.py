@@ -2,6 +2,13 @@
 # Runs in threads so that it can handle and take command at the same time. handle_command will haul when
 # requires input in take_command
 
+# TODO: A GUI Setting, able to save as a config
+# - Select "Exact String" for quitting the whole assistant
+# - A Volume Control GUI for TTS model
+# - Music provider Type
+# - a file importer for TTS_model
+# - Advances developer setting: able to update intents string, command similarity_threshold value
+
 import threading
 import queue
 import sys

@@ -14,7 +14,7 @@ from TTS_TT2.hparams import create_hparams
 from TTS_TT2.model import Tacotron2
 from TTS_TT2.text import text_to_sequence
 
-tacotron2_path = "tts_models/GLaDOS-146" #change the voice model path here
+tacotron2_path = "tts_models/GLaDOS-146"  # change the voice model path here
 hifigan_path = "tts_models/g_02500000"
 superres_path = "tts_models/Superres_Twilight_33000"
 hifigan_config = "hifi_gan/config_v1.json"
@@ -83,7 +83,7 @@ def ARPA(text, cmu_dict, punctuation=r"!?,.;", EOS_Token=True):
         output += ";"
     return output
 
-def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True):
+def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True, volume=1.0):
     if use_pronunciation:
         text = ARPA(text, cmu_dict)
     tacotron2.decoder.max_decoder_steps = max_duration * 80
@@ -123,5 +123,7 @@ def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, 
         silence = np.zeros(int(h2.sampling_rate * 0.3), dtype=np.int16)
         final = np.concatenate([silence, final.astype(np.int16), silence])
 
-        sd.play(final, samplerate=h2.sampling_rate)
+        final = final * np.clip(volume, 0.0, 1.0)
+
+        sd.play(final.astype(np.int16), samplerate=h2.sampling_rate)
         sd.wait()
