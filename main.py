@@ -35,7 +35,8 @@ def take_command():
             pass
 
         input_command = input("Command: ")
-        if input_command == get_settings()["quit_command"]:
+        quit_command = get_settings()["quit_command"]
+        if input_command == quit_command:
             print("Quiting...")
             command_queue.put(None)
             sys.exit()
@@ -47,7 +48,8 @@ def command_worker():
         command = command_queue.get()
         if command is None:
             break
-        handle_command(command, request_input, get_settings()["similarity_threshold"])
+        similarity_threshold=get_settings()["similarity_threshold"]
+        handle_command(command, request_input, similarity_threshold)
         command_queue.task_done()
 
 SETTINGS_PATH = os.path.join(os.path.dirname(__file__), "settings.json")

@@ -87,7 +87,8 @@ def ARPA(text, cmu_dict, punctuation=r"!?,.;", EOS_Token=True):
         output += ";"
     return output
 
-def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True, volume=get_settings()["volume"]):
+
+def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True):
     if use_pronunciation:
         text = ARPA(text, cmu_dict)
     tacotron2.decoder.max_decoder_steps = max_duration * 80
@@ -126,6 +127,8 @@ def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, 
         # print(f"[TTS] Speaking: \"{text}\"")
         silence = np.zeros(int(h2.sampling_rate * 0.3), dtype=np.int16)
         final = np.concatenate([silence, final.astype(np.int16), silence])
+
+        volume = get_settings()["volume"]
 
         final = final * np.clip(volume, 0.0, 1.0)
 
