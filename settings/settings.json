@@ -1,0 +1,10 @@
+{
+    "theme": "dark",
+    "music_volume": 50,
+    "quit_command": "Quit",
+    "similarity_threshold": 0.6,
+    "music_path": "",
+    "volume": 0.92,
+    "music_provider": 0,
+    "file_import_path": "tts_models/GLaDOS-146"
+}

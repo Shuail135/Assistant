@@ -2,18 +2,13 @@
 # Runs in threads so that it can handle and take command at the same time. handle_command will haul when
 # requires input in take_command
 
-# TODO: A GUI Setting, able to save as a config
-# - Select "Exact String" for quitting the whole assistant
-# - A Volume Control GUI for TTS model
-# - Music provider Type
-# - a file importer for TTS_model
-# - Advances developer setting: able to update intents string, command similarity_threshold value
 
 import threading
 import queue
 import sys
 from command import handle_command
 from tts_controller import speak
+from settings.settings_config import get_settings
 
 # thread safe queue
 command_queue = queue.Queue()
@@ -39,7 +34,7 @@ def take_command():
             pass
 
         input_command = input("Command: ")
-        if input_command == "Quit":
+        if input_command == get_settings()["quit_command"]:
             print("Quiting...")
             command_queue.put(None)
             sys.exit()
@@ -51,15 +46,15 @@ def command_worker():
         command = command_queue.get()
         if command is None:
             break
-        handle_command(command, request_input)
+        handle_command(command, request_input, get_settings()["similarity_threshold"])
         command_queue.task_done()
 
 if __name__ == "__main__":
+
     worker_thread = threading.Thread(target=command_worker)
     worker_thread.start()
 
     take_command()
-
     # Wait for all commands to be processed
     command_queue.join()
     worker_thread.join()

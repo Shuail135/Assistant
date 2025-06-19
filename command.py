@@ -8,16 +8,17 @@ import pickle
 import importlib.util
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-
 from tts_controller import speak
+
 
 # File paths
 CSV_FILE = "intents.csv"
-EMBEDDINGS_FILE = "intent_embeddings.npy"
-LABELS_FILE = "intent_labels.pkl"
+EMBEDDINGS_FILE = "./intents/intent_embeddings.npy"
+LABELS_FILE = "./intents/intent_labels.pkl"
 INTENT_FOLDER = "intents"
 
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
+
 
 # Build embedding cache
 def compute_and_cache_embeddings():
@@ -33,6 +34,7 @@ def compute_and_cache_embeddings():
 
     return embeddings, labels
 
+
 # Check if cache needs update
 def should_recompute():
     return (
@@ -40,6 +42,7 @@ def should_recompute():
         or not os.path.exists(LABELS_FILE)
         or os.path.getmtime(CSV_FILE) > os.path.getmtime(EMBEDDINGS_FILE)
     )
+
 
 # Load or compute embeddings
 if should_recompute():
@@ -49,6 +52,7 @@ else:
     with open(LABELS_FILE, "rb") as f:
         intent_labels = pickle.load(f)
     print("[command.py]: Loaded cached embeddings.")
+
 
 # Intent file loader
 def run_intent_action(intent_name, request_input):
@@ -70,8 +74,9 @@ def run_intent_action(intent_name, request_input):
     except Exception as e:
         print(f"[command.py]: Failed to run intent '{intent_name}': {e}")
 
+
 # Main intent matcher
-def handle_command(text, request_input, similarity_threshold=0.6):
+def handle_command(text, request_input, similarity_threshold):
     user_vec = embedder.encode(text)
     similarities = cosine_similarity([user_vec], intent_embeddings)[0]
 
