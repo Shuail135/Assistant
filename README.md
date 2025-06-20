@@ -30,13 +30,20 @@ Since this project is CPU-only, no CUDA or GPU configuration is necessary.
 
 ### 3️⃣ Prepare Custom Tacotron 2 Model
 
-- Train or download a pre-trained Tacotron 2 model (ensure it's compatible with your current TTS pipeline).
-- Place your Tacotron 2 checkpoint file inside the `tts_model/` directory.
+- Train or download a pre-trained Tacotron 2 model (e.g. [Model from Hugging Face][hugging_face]).
+- Place your Tacotron 2 checkpoint file inside the `tts_model/` directory. (Recommend)
+
+[hugging_face]: https://huggingface.co/models?sort=trending&search=tacotron2
 
 ### 4️⃣ Update Tacotron 2 Model Path
 
 - Run `settings.py`.
-- Update tts model path
+```bash
+python settings.py
+```
+
+- Update the TTS model path to your Tacotron 2 model
+- Adjust other settings if needed
 
 ### 5️⃣ Run the Voice Assistant
 
@@ -56,7 +63,6 @@ The assistant will start taking voice/text commands and respond using your custo
 - ✅ No CUDA or GPU drivers required.
 - ✅ Everything operates locally.
 - ✅ The model will try to understand your intent through your text, and find the most suitable intent for you.
-- ⚠️ Tacotron 2 models can still consume significant CPU and RAM resources. (I did try to reduce usage... A LOT...)
 - ⚠️ This README assumes you already have a trained Tacotron 2 model; trained model is not included.
 
 ---
