@@ -62,19 +62,22 @@ The assistant will start taking voice/text commands and respond using your custo
 - ✅ Fully CPU compatible (but slower inference compared to GPU).
 - ✅ No CUDA or GPU drivers required.
 - ✅ Everything operates locally.
-- ✅ The model will try to understand your intent through your text, and find the most suitable intent for you.
+- ✅ The model will try to understand your intent through your human text, and find the most suitable intent for you.
 - ⚠️ This README assumes you already have a trained Tacotron 2 model; trained model is not included.
 
 ---
 
 ## Current Development
 
-- Still in progress, lacking in functionality.
+- Convert human text to corresponding intents command ✅
+  - Cached sentence embeddings + cosine similarity with auto-invalidation when intents file is changed ✅
+- Different Intents are still in progress, lacking in functionality.
   - Current intents:
   - Play Music
   - Tell Time
   - Tell Date
   - Calculator(Can calculate from english math)
   - Open Settings
-- With GUI settings
+- With GUI real time settings ✅
 - Will build a local speech to text(or even your only voice recognization lets see)
+- Building Gernative AI (TinyLLaMA (1.1B) with llama.cpp + Prompt Engineering or LoRA)
