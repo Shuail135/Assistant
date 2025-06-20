@@ -27,6 +27,4 @@ def load_filepaths_and_text(filename, sort_by_length, split="|"):
     return filepaths_and_text
 
 
-def to_gpu(x):
-    x = x.contiguous().cuda(async=True)
-    return torch.autograd.Variable(x)
+

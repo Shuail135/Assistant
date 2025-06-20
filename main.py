@@ -2,7 +2,6 @@
 # Runs in threads so that it can handle and take command at the same time. handle_command will haul when
 # requires input in take_command
 
-import json
 import os
 import threading
 import queue

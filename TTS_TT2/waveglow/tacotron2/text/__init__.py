@@ -1,7 +1,7 @@
 """ from https://github.com/keithito/tacotron """
 import re
-from text import cleaners
-from text.symbols import symbols
+from TTS_TT2.text import cleaners
+from TTS_TT2.text.symbols import symbols
 
 
 # Mappings from symbol to numeric ID and vice versa:
@@ -40,19 +40,6 @@ def text_to_sequence(text, cleaner_names):
   # Append EOS token
   sequence.append(_symbol_to_id['~'])
   return sequence
-
-
-def sequence_to_text(sequence):
-  '''Converts a sequence of IDs back to a string'''
-  result = ''
-  for symbol_id in sequence:
-    if symbol_id in _id_to_symbol:
-      s = _id_to_symbol[symbol_id]
-      # Enclose ARPAbet back in curly braces:
-      if len(s) > 1 and s[0] == '@':
-        s = '{%s}' % s[1:]
-      result += s
-  return result.replace('}{', ' ')
 
 
 def _clean_text(text, cleaner_names):
