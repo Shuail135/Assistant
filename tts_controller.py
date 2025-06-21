@@ -22,11 +22,10 @@ from settings.settings_config import get_settings
 tacotron2_path = get_settings()["file_import_path"]  # change the voice model path here
 hifigan_path = "tts_models/g_02500000"
 superres_path = "tts_models/Superres_Twilight_33000"
-hifigan_config = "hifi_gan/config_v1.json"
+hifigan_config = get_settings()["hifigan_config_path"]
 superres_config = "hifi_gan/config_32k.json"
 CMU_DICT_PATH = "cmudict/merged.dict.txt"
 
-# TODO: Throw exception if not valid
 
 def load_hifigan(model_path, config_path):
     with open(config_path) as f:
@@ -42,9 +41,9 @@ def load_hifigan(model_path, config_path):
 
 def load_tacotron2(model_path):
     hparams = create_hparams()
-    hparams.sampling_rate = 22050
-    hparams.max_decoder_steps = 3000
-    hparams.gate_threshold = 0.25
+    hparams.sampling_rate = get_settings()["sampling_rate"]
+    hparams.max_decoder_steps = get_settings()["max_decoder_steps"]
+    hparams.gate_threshold = get_settings()["gate_threshold"]
     model = Tacotron2(hparams)
     checkpoint = torch.load(model_path, map_location="cpu")
     model.load_state_dict(checkpoint["state_dict"])
@@ -91,13 +90,18 @@ def ARPA(text, cmu_dict, punctuation=r"!?,.;", EOS_Token=True):
     return output
 
 
-def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, use_pronunciation=True):
+def speak(text: str):
+    max_duration = get_settings()["max_duration"]
+    stop_threshold = get_settings()["stop_threshold"]
+    superres_strength = get_settings()["superres_strength"]
+    use_pronunciation = get_settings()["use_pronunciation"]
+
     if use_pronunciation:
         text = ARPA(text, cmu_dict)
     tacotron2.decoder.max_decoder_steps = max_duration * 80
     tacotron2.decoder.gate_threshold = stop_threshold
 
-    sequence = np.array(text_to_sequence(text, ['english_cleaners']))[None, :]
+    sequence = np.array(text_to_sequence(text, ['english_cleanesr']))[None, :]
     sequence = torch.LongTensor(sequence)
 
     with torch.no_grad():
@@ -137,3 +141,12 @@ def speak(text: str, max_duration=20, stop_threshold=0.9, superres_strength=10, 
 
         sd.play(final.astype(np.int16), samplerate=h2.sampling_rate)
         sd.wait()
+
+# For testing speaking
+if __name__ == "__main__":
+    while True:
+        input_speech = input("Speak: ")
+        if input_speech == "KKK":
+            break
+        print(get_settings()["file_import_path"])
+        speak(input_speech)
