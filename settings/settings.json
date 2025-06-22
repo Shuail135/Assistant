@@ -1,8 +1,0 @@
-{
-    "theme": "light",
-    "volume": 0.46,
-    "music_provider": 0,
-    "quit_command": "Quit",
-    "file_import_path": "tts_models/GLaDOS-146",
-    "similarity_threshold": 0.6
-}
