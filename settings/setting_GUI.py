@@ -3,6 +3,7 @@ import os
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.slider import MDSlider
@@ -33,7 +34,7 @@ music_text_to_id = {v: k for k, v in music_provider_map.items()}
 
 sampling_rates = [16000, 22050, 24000, 44100]
 
-hifigan_versions = ["v1", "v1b", "v2", "v3"]
+hifigan_versions = ["v1", "v1b"]
 
 # Mouse scrolling
 class MouseOnlyScrollView(ScrollView):
@@ -57,6 +58,32 @@ class MouseOnlyScrollView(ScrollView):
             return super().on_touch_up(touch)
         return super().on_touch_up(touch)
 
+class CustomInputRow(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation="horizontal", spacing=dp(10), size_hint_y=None, height=dp(50), **kwargs)
+
+        # Text field that expands
+        self.input_field = MDTextField(
+            hint_text="Manual open settings only",
+            size_hint_x=1,
+            height=dp(50)
+        )
+
+        # Fixed-size button
+        self.action_button = MDRaisedButton(
+            text="Testing",
+            size_hint_x=None,
+            width=dp(80),
+            on_release=self.on_button_pressed
+        )
+
+        self.add_widget(self.input_field)
+        self.add_widget(self.action_button)
+
+    def on_button_pressed(self, instance):
+        string = self.input_field.text
+        from tts_controller import speak
+        speak(string, True)
 
 class GeneralTab(MouseOnlyScrollView, MDTabsBase):
     def __init__(self, screen, **kwargs):
@@ -112,10 +139,6 @@ class GeneralTab(MouseOnlyScrollView, MDTabsBase):
         self.container.add_widget(make_label("Quit Command"))
         self.container.add_widget(fix_widget(self.screen.quit_command, height=dp(63)))
 
-        white_space()
-
-        self.container.add_widget(make_label("TTS Model File Path"))
-        self.container.add_widget(fix_widget(self.screen.file_path))
 
 
 class TTSTab(MouseOnlyScrollView, MDTabsBase):
@@ -154,7 +177,12 @@ class TTSTab(MouseOnlyScrollView, MDTabsBase):
 
         white_space()
 
-        self.container.add_widget(make_label("TTS Max Decoder Steps"))
+        self.container.add_widget(make_label("TTS Model File Path"))
+        self.container.add_widget(fix_widget(self.screen.file_path))
+
+        white_space()
+
+        self.container.add_widget(make_label("Max Decoder Steps"))
         self.container.add_widget(fix_widget(self.screen.decoder_steps_input, height=dp(63)))
 
         white_space()
@@ -164,13 +192,33 @@ class TTSTab(MouseOnlyScrollView, MDTabsBase):
 
         white_space()
 
-        self.container.add_widget(make_label("Gate Threshold"))
-        self.container.add_widget(fix_widget(self.screen.gate_threshold, height=dp(63)))
+        self.container.add_widget(make_label("Stop Threshold"))
+        self.container.add_widget(fix_widget(self.screen.stop_threshold, height=dp(63)))
 
         white_space()
 
         self.container.add_widget(make_label("Hifigan Config"))
         self.container.add_widget(fix_widget(self.screen.hifigan_version_field, height=dp(63)))
+
+        white_space()
+
+        self.container.add_widget(make_label("Max duration of Speech"))
+        self.container.add_widget(fix_widget(self.screen.max_duration, height=dp(63)))
+
+        white_space()
+
+        self.container.add_widget(make_label("Superres Strength"))
+        self.container.add_widget(fix_widget(self.screen.superres_strength, height=dp(63)))
+
+        white_space()
+
+        self.container.add_widget(make_label("Use Pronunciation"))
+        self.container.add_widget(fix_widget(self.screen.use_pronunciation, height=dp(63)))
+
+        white_space()
+
+        row = CustomInputRow()
+        self.container.add_widget(row)
 
 
 class AdvancedTab(MouseOnlyScrollView, MDTabsBase):
@@ -283,7 +331,7 @@ class SettingsScreen(MDBoxLayout):
             hint_text="(int)",
             size_hint_y=None,
             height=dp(50),
-            input_filter='float'
+            input_filter='int'
         )
 
         self.sampling_rate_field = MDTextField(
@@ -295,9 +343,9 @@ class SettingsScreen(MDBoxLayout):
         )
         self.sampling_rate_field.bind(on_touch_down=self.open_sampling_rate_menu)
 
-        self.gate_threshold = MDTextField(
-            text=str(self.settings["gate_threshold"]),
-            hint_text="how confident the model knows it should stop(0 to 1)",
+        self.stop_threshold = MDTextField(
+            text=str(self.settings["stop_threshold"]),
+            hint_text="how confident the model knows it should stop (0 to 1)",
             size_hint_y=None,
             height=dp(50),
             input_filter='float'
@@ -309,10 +357,6 @@ class SettingsScreen(MDBoxLayout):
                 return "v1"
             elif hifigan_config_path == "hifi_gan/config_v1b.json":
                 return "v1b"
-            elif hifigan_config_path == "hifi_gan/config_v2.json":
-                return "v2"
-            elif hifigan_config_path == "hifi_gan/config_v3.json":
-                return "v3"
             else:
                 return hifigan_config_path
 
@@ -324,6 +368,31 @@ class SettingsScreen(MDBoxLayout):
             height=dp(50)
         )
         self.hifigan_version_field.bind(on_touch_down=self.open_hifigan_version_menu)
+
+        self.max_duration = MDTextField(
+            text=str(self.settings["max_duration"]),
+            hint_text="in second",
+            size_hint_y=None,
+            height=dp(50),
+            input_filter='int'
+        )
+
+        self.superres_strength = MDTextField(
+            text=str(self.settings["superres_strength"]),
+            hint_text="Controls how strongly to denoise",
+            size_hint_y=None,
+            height=dp(50),
+            input_filter='int'
+        )
+
+        self.use_pronunciation = MDTextField(
+            text=str(self.settings.get("use_pronunciation", True)),
+            hint_text="Use Pronunciation",
+            readonly=True,
+            size_hint_y=None,
+            height=dp(50)
+        )
+        self.use_pronunciation.bind(on_touch_down=self.open_use_pronunciation_menu)
 
         # --- Advanced Fields ---
         self.similarity_input = MDTextField(
@@ -362,6 +431,18 @@ class SettingsScreen(MDBoxLayout):
         )
         bottom_wrapper.add_widget(self.save_button)
         self.add_widget(bottom_wrapper)
+
+    def get_TTS_value(self):
+        TTS_model_path = self.file_path.text
+        max_decoder_steps = int(self.decoder_steps_input.text)
+        sampling_rate = int(self.sampling_rate_field.text)
+        stop_threshold = float(self.stop_threshold.text)
+        hifigan_config_path = self.get_hifigan_config_path()
+        max_duration = int(self.max_duration.text)
+        superres_strength = int(self.superres_strength.text)
+        use_pronunciation = bool(self.use_pronunciation.text)
+        return TTS_model_path, max_decoder_steps, sampling_rate, stop_threshold, hifigan_config_path, max_duration, superres_strength, use_pronunciation
+
 
     def set_custom_tab_colors(self, instance_tabs, instance_tab, instance_tab_label, tab_text):
         for tab in instance_tabs.get_tab_list():
@@ -527,6 +608,43 @@ class SettingsScreen(MDBoxLayout):
         self.sampling_rate_field.text = str(name)
         self.sampling_rate_menu.dismiss()
 
+    def open_use_pronunciation_menu(self, instance, touch):
+        if instance.collide_point(*touch.pos):
+            def create_menu(*_):
+                if hasattr(self, 'use_pronunciation_menu') and self.use_pronunciation_menu:
+                    self.use_pronunciation_menu.dismiss()
+
+                items = [
+                    {
+                        "text": str(value),
+                        "viewclass": "OneLineListItem",
+                        "on_release": lambda x=value: self.set_use_pronunciation(x)
+                    } for value in [True, False]
+                ]
+
+                self.use_pronunciation_menu = MDDropdownMenu(
+                    caller=self.use_pronunciation,
+                    items=items,
+                    width_mult=1,
+                    max_height=dp(150)
+                )
+
+                def set_size_and_pos(_):
+                    self.use_pronunciation_menu.width = self.use_pronunciation.width
+                    x, y = self.use_pronunciation.to_window(
+                        self.use_pronunciation.x, self.use_pronunciation.y
+                    )
+                    self.use_pronunciation_menu.pos = (x, y - self.use_pronunciation_menu.height + 10)
+
+                Clock.schedule_once(set_size_and_pos, 0.01)
+                self.use_pronunciation_menu.open()
+
+            Clock.schedule_once(create_menu, 0)
+
+    def set_use_pronunciation(self, value):
+        self.use_pronunciation.text = str(value)
+        self.use_pronunciation_menu.dismiss()
+
     def open_hifigan_version_menu(self, instance, touch):
         if instance.collide_point(*touch.pos):
 
@@ -565,33 +683,34 @@ class SettingsScreen(MDBoxLayout):
         self.hifigan_version_field.text = version
         self.hifigan_version_menu.dismiss()
 
+
+    def check_all_valid(self):
+        if not (0 < float(self.similarity_input.text) < 1):
+            return False
+        if int(self.decoder_steps_input.text) < 0:
+            return False
+        if not (0 < float(self.stop_threshold.text) < 1):
+            return False
+        if int(self.max_duration.text) < 0:
+            return False
+        if int(self.superres_strength.text) < 0:
+            return False
+        return True
+
+    def get_hifigan_config_path(self):
+        hifigan_version = self.hifigan_version_field.text
+        if hifigan_version == hifigan_versions[0]:
+            return "hifi_gan/config_v1.json"
+        elif hifigan_version == hifigan_versions[1]:
+            return "hifi_gan/config_v1b.json"
+        else:
+            return hifigan_version
+
+
     def save_all(self, _instance):
-        def check_all_valid():
-            if not (0 < float(self.similarity_input.text) < 1):
-                return False
-            if int(self.decoder_steps_input.text) < 0:
-                return False
-            if not (0 < float(self.gate_threshold.text) < 1):
-                return False
-
-            return True
-
-        if not check_all_valid():
+        if not self.check_all_valid():
             toast("Error Input")
             return
-
-        def get_hifigan_config_path():
-            hifigan_version = self.hifigan_version_field.text
-            if hifigan_version == hifigan_versions[0]:
-                return "hifi_gan/config_v1.json"
-            elif hifigan_version == hifigan_versions[1]:
-                return "hifi_gan/config_v1b.json"
-            elif hifigan_version == hifigan_versions[2]:
-                return "hifi_gan/config_v2.json"
-            elif hifigan_version == hifigan_versions[3]:
-                return "hifi_gan/config_v3.json"
-            else:
-                return hifigan_version
 
         self.settings["theme"] = self.theme_text.text
         self.settings["volume"] = self.volume_slider.value / 100
@@ -601,17 +720,21 @@ class SettingsScreen(MDBoxLayout):
         self.settings["similarity_threshold"] = float(self.similarity_input.text)
         self.settings["max_decoder_steps"] = int(self.decoder_steps_input.text)
         self.settings["sampling_rate"] = int(self.sampling_rate_field.text)
-        self.settings["gate_threshold"] = float(self.gate_threshold.text)
-        self.settings["hifigan_config_path"] = get_hifigan_config_path()
+        self.settings["stop_threshold"] = float(self.stop_threshold.text)
+        self.settings["hifigan_config_path"] = self.get_hifigan_config_path()
+        self.settings["max_duration"] = int(self.max_duration.text)
+        self.settings["superres_strength"] = int(self.superres_strength.text)
+        self.settings["use_pronunciation"] = bool(self.use_pronunciation.text)
         save_settings(self.settings)
+        toast("Saved Config")
 
 
 class SettingsApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = get_settings().get("theme", "Light").capitalize()
-        self.screen = SettingsScreen()
-        self.screen.apply_theme_background()
-        return SettingsScreen()
+        self.settings_screen = SettingsScreen()
+        self.settings_screen.apply_theme_background()
+        return self.settings_screen
 
 
 def open_gui():

@@ -2,7 +2,8 @@
 # Runs in threads so that it can handle and take command at the same time. handle_command will haul when
 # requires input in take_command
 
-import os
+# TODO: reload model
+
 import threading
 import queue
 import sys

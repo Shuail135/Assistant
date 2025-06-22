@@ -12,10 +12,9 @@ _default_settings = {
     "file_import_path": "tts_models/custom_tts_model",
     "max_decoder_steps": 3000,
     "sampling_rate": 22050,
-    "gate_threshold": 0.25,
+    "stop_threshold": 0.9,
     "hifigan_config_path": "hifi_gan/config_v1.json",
     "max_duration": 20,
-    "stop_threshold": 0.9,
     "superres_strength": 10,
     "use_pronunciation": True,
     "similarity_threshold": 0.6
