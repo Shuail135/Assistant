@@ -14,9 +14,11 @@ _default_settings = {
     "sampling_rate": 22050,
     "stop_threshold": 0.9,
     "hifigan_config_path": "hifi_gan/config_v1.json",
+    "hifigan_path": "tts_models/g_02500000",
     "max_duration": 20,
     "superres_strength": 10,
     "use_pronunciation": True,
+    "denoiser_strength": 35,
     "similarity_threshold": 0.6
 }
 

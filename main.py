@@ -2,7 +2,6 @@
 # Runs in threads so that it can handle and take command at the same time. handle_command will haul when
 # requires input in take_command
 
-# TODO: reload model
 
 import threading
 import queue
@@ -53,7 +52,6 @@ def command_worker():
         command_queue.task_done()
 
 if __name__ == "__main__":
-
     worker_thread = threading.Thread(target=command_worker)
     worker_thread.start()
 

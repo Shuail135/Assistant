@@ -18,3 +18,8 @@ current date,get_date
 
 open settings,open_settings
 open configuration,open_settings
+
+reload model,reload_model
+reload TTS model,reload_model
+reload Tacotron 2,reload_model
+reload TTS,reload_model

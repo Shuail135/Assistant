@@ -73,11 +73,12 @@ The assistant will start taking voice/text commands and respond using your custo
   - Cached sentence embeddings + cosine similarity with auto-invalidation when intents file is changed ✅
 - Different Intents are still in progress, lacking in functionality.
   - Current intents:
-  - Play Music
-  - Tell Time
-  - Tell Date
-  - Calculator(Can calculate from english math)
-  - Open Settings
+    - Play Music
+    - Tell Time
+    - Tell Date
+    - Calculator(Can calculate from english math)
+    - Open Settings
+    - Reload Model (after modified TTS settings, reload model to apply changes)
 - With GUI real time settings ✅
 - Will build a local speech to text(or even your only voice recognization lets see)
 - Building Gernative AI (TinyLLaMA (1.1B) with llama.cpp + Prompt Engineering or LoRA)

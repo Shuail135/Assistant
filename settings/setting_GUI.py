@@ -71,7 +71,7 @@ class CustomInputRow(BoxLayout):
 
         # Fixed-size button
         self.action_button = MDRaisedButton(
-            text="Testing",
+            text="Test",
             size_hint_x=None,
             width=dp(80),
             on_release=self.on_button_pressed
@@ -81,9 +81,13 @@ class CustomInputRow(BoxLayout):
         self.add_widget(self.action_button)
 
     def on_button_pressed(self, instance):
+        Clock.schedule_once(lambda dt: self.run_speak(), 0.1)
+
+    def run_speak(self):
         string = self.input_field.text
-        from tts_controller import speak
-        speak(string, True)
+        if string != "":
+            from tts_controller import speak
+            speak(string, True)
 
 class GeneralTab(MouseOnlyScrollView, MDTabsBase):
     def __init__(self, screen, **kwargs):
@@ -202,6 +206,11 @@ class TTSTab(MouseOnlyScrollView, MDTabsBase):
 
         white_space()
 
+        self.container.add_widget(make_label("Hifigan Path"))
+        self.container.add_widget(fix_widget(self.screen.hifigan_file_path))
+
+        white_space()
+
         self.container.add_widget(make_label("Max duration of Speech"))
         self.container.add_widget(fix_widget(self.screen.max_duration, height=dp(63)))
 
@@ -214,6 +223,11 @@ class TTSTab(MouseOnlyScrollView, MDTabsBase):
 
         self.container.add_widget(make_label("Use Pronunciation"))
         self.container.add_widget(fix_widget(self.screen.use_pronunciation, height=dp(63)))
+
+        white_space()
+
+        self.container.add_widget(make_label("Denoiser Strength"))
+        self.container.add_widget(fix_widget(self.screen.denoiser_strength, height=dp(63)))
 
         white_space()
 
@@ -369,6 +383,15 @@ class SettingsScreen(MDBoxLayout):
         )
         self.hifigan_version_field.bind(on_touch_down=self.open_hifigan_version_menu)
 
+        self.hifigan_file_path = MDTextField(
+            text=self.settings["hifigan_path"],
+            hint_text="Choose file",
+            readonly=True,
+            size_hint_y=None,
+            height=dp(50)
+        )
+        self.hifigan_file_path.bind(on_touch_down=self.open_hifigan_file_picker)
+
         self.max_duration = MDTextField(
             text=str(self.settings["max_duration"]),
             hint_text="in second",
@@ -379,7 +402,7 @@ class SettingsScreen(MDBoxLayout):
 
         self.superres_strength = MDTextField(
             text=str(self.settings["superres_strength"]),
-            hint_text="Controls how strongly to denoise",
+            hint_text="Add sparkle/detail (Might piercing highs, distortion)",
             size_hint_y=None,
             height=dp(50),
             input_filter='int'
@@ -393,6 +416,14 @@ class SettingsScreen(MDBoxLayout):
             height=dp(50)
         )
         self.use_pronunciation.bind(on_touch_down=self.open_use_pronunciation_menu)
+
+        self.denoiser_strength = MDTextField(
+            text=str(self.settings["denoiser_strength"]),
+            hint_text="Strength of remove hiss/static",
+            size_hint_y=None,
+            height=dp(50),
+            input_filter='int'
+        )
 
         # --- Advanced Fields ---
         self.similarity_input = MDTextField(
@@ -441,7 +472,10 @@ class SettingsScreen(MDBoxLayout):
         max_duration = int(self.max_duration.text)
         superres_strength = int(self.superres_strength.text)
         use_pronunciation = bool(self.use_pronunciation.text)
-        return TTS_model_path, max_decoder_steps, sampling_rate, stop_threshold, hifigan_config_path, max_duration, superres_strength, use_pronunciation
+        hifigan_path = self.hifigan_file_path.text
+        denoiser_strength = int(self.denoiser_strength.text)
+        return (TTS_model_path, max_decoder_steps, sampling_rate, stop_threshold, hifigan_config_path, max_duration,
+                superres_strength, use_pronunciation, hifigan_path, denoiser_strength)
 
 
     def set_custom_tab_colors(self, instance_tabs, instance_tab, instance_tab_label, tab_text):
@@ -570,6 +604,31 @@ class SettingsScreen(MDBoxLayout):
     def exit_file_manager(self, *args):
         self.file_manager.close()
 
+    def open_hifigan_file_picker(self, instance, touch):
+        if instance.collide_point(*touch.pos):
+            system = platform.system()
+
+            # Check if android
+            if system == "Linux" and ("ANDROID_ARGUMENT" in os.environ):
+                start_path = "/sdcard"
+            elif system == "Windows" or "Darwin" or "Linux":
+                start_path = os.path.expanduser("~")
+            else:
+                start_path = "/"
+            self.file_manager.show(start_path)
+
+    def select_hifigan_file_path(self, path):
+        allowed_extensions = [".pt", ".pth", ".t7", ""]
+
+        if any(path.lower().endswith(ext) for ext in allowed_extensions):
+            self.file_path.text = path
+            self.exit_file_manager()
+        else:
+            toast("Error File Type")
+
+    def exit_hifigan_file_manager(self, *args):
+        self.file_manager.close()
+
     def open_sampling_rate_menu(self, instance, touch):
         if instance.collide_point(*touch.pos):
 
@@ -695,6 +754,8 @@ class SettingsScreen(MDBoxLayout):
             return False
         if int(self.superres_strength.text) < 0:
             return False
+        if int(self.denoiser_strength.text) < 0:
+            return False
         return True
 
     def get_hifigan_config_path(self):
@@ -722,9 +783,11 @@ class SettingsScreen(MDBoxLayout):
         self.settings["sampling_rate"] = int(self.sampling_rate_field.text)
         self.settings["stop_threshold"] = float(self.stop_threshold.text)
         self.settings["hifigan_config_path"] = self.get_hifigan_config_path()
+        self.settings["hifigan_file_path"] = self.hifigan_file_path.text
         self.settings["max_duration"] = int(self.max_duration.text)
         self.settings["superres_strength"] = int(self.superres_strength.text)
         self.settings["use_pronunciation"] = bool(self.use_pronunciation.text)
+        self.settings["denoiser_strength"] = int(self.denoiser_strength.text)
         save_settings(self.settings)
         toast("Saved Config")
 

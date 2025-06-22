@@ -24,12 +24,13 @@ hparams = None
 hifigan = None
 h = None
 denoiser = None
-tacotron2_path = get_settings()["file_import_path"]  # change the voice model path here
-hifigan_path = "tts_models/g_02500000"
+tacotron2_path = get_settings()["file_import_path"]
+hifigan_path = get_settings()["hifigan_path"]
 superres_path = "tts_models/Superres_Twilight_33000"
 hifigan_config = get_settings()["hifigan_config_path"]
 superres_config = "hifi_gan/config_32k.json"
 CMU_DICT_PATH = "cmudict/merged.dict.txt"
+denoiser_strength = get_settings()["denoiser_strength"]
 
 
 def load_hifigan(model_path, config_path):
@@ -63,25 +64,27 @@ print("[TTS] Models loaded.")
 
 
 def test_model():
-    global tacotron2, hparams, hifigan, h, denoiser
-    global tacotron2_path, hifigan_config  # Also needed to reassign paths!
+    global tacotron2, hparams, hifigan, h, denoiser, hifigan_sr, h2, denoiser_sr
 
     from kivy.app import App
     settings_screen = App.get_running_app().settings_screen
     (tts_path, max_decoder_steps, sample_rate, stop_threshold, hifigan_config_path, max_duration,
-     superres_strength, use_pronunciation) = settings_screen.get_TTS_value()
+     superres_strength, use_pronunciation, hifigan_path, denoiser_strength) = settings_screen.get_TTS_value()
 
-    # Reload Tacotron2 if path changed
-    if tacotron2_path != tts_path:
-        tacotron2, hparams = load_tacotron2(tts_path)
-        tacotron2_path = tts_path
-        print("[TTS] Reloaded Tacotron2 model.")
+    tacotron2, hparams = load_tacotron2(tts_path)
+    hifigan, h, denoiser = load_hifigan(hifigan_path, hifigan_config_path)
+    hifigan_sr, h2, denoiser_sr = load_hifigan(superres_path, superres_config)
+    print("[TTS] Reloaded HiFi-GAN model.")
 
-    # Reload Hifi-GAN if config path changed
-    if hifigan_config != hifigan_config_path:
-        hifigan, h, denoiser = load_hifigan("tts_models/g_02500000", hifigan_config_path)
-        hifigan_config = hifigan_config_path
-        print("[TTS] Reloaded HiFi-GAN model.")
+def reload_model():
+    global tacotron2, hparams, hifigan, h, denoiser, hifigan_sr, h2, denoiser_sr
+    tts_path = get_settings()["file_import_path"]
+    hifigan_config = get_settings()["hifigan_config_path"]
+    hifigan_path = get_settings()["hifigan_path"]
+
+    tacotron2, hparams = load_tacotron2(tts_path)
+    hifigan, h, denoiser = load_hifigan(hifigan_path, hifigan_config)
+    hifigan_sr, h2, denoiser_sr = load_hifigan(superres_path, superres_config)
 
 
 def load_pronunciation_dict(dict_path=CMU_DICT_PATH):
@@ -124,12 +127,13 @@ def speak(text: str, test=False):
         from kivy.app import App
         settings_screen = App.get_running_app().settings_screen
         (tts_path, max_decoder_steps, sample_rate, stop_threshold, hifigan_config_path, max_duration,
-         superres_strength, use_pronunciation) = settings_screen.get_TTS_value()
+         superres_strength, use_pronunciation, hifigan_path, denoiser_strength) = settings_screen.get_TTS_value()
     else:
         max_duration = get_settings()["max_duration"]
         stop_threshold = get_settings()["stop_threshold"]
         superres_strength = get_settings()["superres_strength"]
         use_pronunciation = get_settings()["use_pronunciation"]
+        denoiser_strength = get_settings()["denoiser_strength"]
 
     if use_pronunciation:
         text = ARPA(text, cmu_dict)
@@ -143,7 +147,7 @@ def speak(text: str, test=False):
         mel_outputs, mel_postnet, _, _ = tacotron2.inference(sequence)
         y_hat = hifigan(mel_postnet)
         audio = y_hat.squeeze().cpu().numpy() * MAX_WAV_VALUE
-        audio = denoiser(torch.tensor(audio).unsqueeze(0), strength=350).squeeze().numpy()
+        audio = denoiser(torch.tensor(audio).unsqueeze(0), strength=denoiser_strength).squeeze().numpy()
 
         normalize = (MAX_WAV_VALUE / np.max(np.abs(audio))) ** 0.9
         audio *= normalize
@@ -156,9 +160,8 @@ def speak(text: str, test=False):
                                  h2.hop_size, h2.win_size, h2.fmin, h2.fmax)
 
         y_sr = hifigan_sr(mel_sr).squeeze().cpu().numpy() * MAX_WAV_VALUE
-        y_sr = denoiser_sr(torch.tensor(y_sr).unsqueeze(0), strength=350).squeeze().numpy()
+        y_sr = denoiser_sr(torch.tensor(y_sr).unsqueeze(0), strength=denoiser_strength).squeeze().numpy()
 
-        ## TODO denoiser strength
 
         b = scipy.signal.firwin(101, cutoff=10500, fs=h2.sampling_rate, pass_zero=False)
         y_hp = scipy.signal.lfilter(b, [1.0], y_sr)
