@@ -13,3 +13,4 @@ settings/settings.json
 intents/__pycache__
 intents/intent_embeddings.npy
 intents/intent_labels.pkl
+LLM/chat_history.txt

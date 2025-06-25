@@ -56,10 +56,23 @@ def load_tacotron2(model_path):
     model.eval()
     return model, hparams
 
+def load_TTS(tts_path, hifigan_path, hifigan_config_path, superres_path, superres_config):
+    global tacotron2, hparams, hifigan, h, denoiser, hifigan_sr, h2, denoiser_sr
+    tacotron2, hparams = load_tacotron2(tts_path)
+    hifigan, h, denoiser = load_hifigan(hifigan_path, hifigan_config_path)
+    hifigan_sr, h2, denoiser_sr = load_hifigan(superres_path, superres_config)
+
 print("[TTS] Loading models...")
-tacotron2, hparams = load_tacotron2(tacotron2_path)
-hifigan, h, denoiser = load_hifigan(hifigan_path, hifigan_config)
-hifigan_sr, h2, denoiser_sr = load_hifigan(superres_path, superres_config)
+try:
+    load_TTS(tacotron2_path, hifigan_path, hifigan_config, superres_path, superres_config)
+except:
+    from kivy.app import App
+
+    settings_screen = App.get_running_app().settings_screen
+    (tts_path, max_decoder_steps, sample_rate, stop_threshold, hifigan_config_path, max_duration,
+     superres_strength, use_pronunciation, hifigan_path, denoiser_strength) = settings_screen.get_TTS_value()
+    load_TTS(tts_path, hifigan_path, hifigan_config_path, superres_path, superres_config)
+
 print("[TTS] Models loaded.")
 
 
@@ -71,9 +84,7 @@ def test_model():
     (tts_path, max_decoder_steps, sample_rate, stop_threshold, hifigan_config_path, max_duration,
      superres_strength, use_pronunciation, hifigan_path, denoiser_strength) = settings_screen.get_TTS_value()
 
-    tacotron2, hparams = load_tacotron2(tts_path)
-    hifigan, h, denoiser = load_hifigan(hifigan_path, hifigan_config_path)
-    hifigan_sr, h2, denoiser_sr = load_hifigan(superres_path, superres_config)
+    load_TTS(tts_path, hifigan_path, hifigan_config_path, superres_path, superres_config)
     print("[TTS] Reloaded HiFi-GAN model.")
 
 def reload_model():
@@ -82,9 +93,7 @@ def reload_model():
     hifigan_config = get_settings()["hifigan_config_path"]
     hifigan_path = get_settings()["hifigan_path"]
 
-    tacotron2, hparams = load_tacotron2(tts_path)
-    hifigan, h, denoiser = load_hifigan(hifigan_path, hifigan_config)
-    hifigan_sr, h2, denoiser_sr = load_hifigan(superres_path, superres_config)
+    load_TTS(tts_path, hifigan_path, hifigan_config, superres_path, superres_config)
 
 
 def load_pronunciation_dict(dict_path=CMU_DICT_PATH):
