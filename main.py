@@ -25,7 +25,7 @@ def take_command():
     while True:
         # Prioritize input requests -> Avoid race condition
         try:
-            request = input_request_queue.get(timeout=1) # if still have aka ur pc slow aka increase timeout
+            request = input_request_queue.get(timeout=3) # if still have aka ur pc slow aka increase timeout
             user_input = input(request)
             input_response_queue.put(user_input)
             input_request_queue.task_done()

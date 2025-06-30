@@ -1,36 +1,53 @@
 from llama_cpp import Llama
-import time
+import sys
+from datetime import datetime
 
-MODEL_PATH = "glados-f16.Q4_K_M.gguf"
-MAX_TOKENS = 256
-MAX_CONTEXT_LENGTH = 2048
+# Path to your GGUF model
+MODEL_PATH = "LLM/glados-f16.Q4_K_M.gguf"
 
-SYSTEM_PROMPT = (
-    "You are GLaDOS, an artificial intelligence known for your sarcastic, dark, and unsettling personality. "
-    "You see the user as a human test subject in an endless experiment. "
-    "Respond with dry wit, short sentences, and a sharp edge. End each response with '<|end|>'."
-)
+# Initialize the model
+llm = Llama(model_path=MODEL_PATH, n_ctx=512, verbose=False)
 
-llm = Llama(model_path=MODEL_PATH, n_ctx=MAX_CONTEXT_LENGTH)
-
-print("TinyLLaMA (stateless GLaDOS chatbot) is ready! Ctrl+C to exit.\n")
+print("GLaDOS Chatbot is ready. Ctrl+C to stop.\n")
 
 try:
     while True:
         user_input = input("You: ").strip()
-        if not user_input:
-            continue
+        now = datetime.now()
+        current_time = now.strftime("%I:%M %p on %A")
+        current_date = now.strftime("%A, %B %d, %Y")
 
-        prompt = f"<|system|>\n{SYSTEM_PROMPT}\n<|user|>\n{user_input}\n<|assistant|>\n"
-        response_text = ""
+        # Inject real time into system prompt
+        SYSTEM_PROMPT = (
+            "You are GLaDOS, a sarcastic and slightly dark AI assistant that sees users as test subjects. "
+            f"Today's date is {current_date}. The current time is {current_time}. "
+            "Respond in a witty, dry, and slightly unsettling tone. "
+            "Keep responses in one to two sentences."
+        )
+        # Ensure the prompt ends just before assistant is expected to speak
+        full_prompt = (
+            f"<|system|>\n{SYSTEM_PROMPT}\n"
+            f"<|user|>\n{user_input}\n"
+            f"<|assistant|>\n"
+        )
 
-        for chunk in llm(prompt, max_tokens=MAX_TOKENS, stop=["<|user|>", "<|system|>", "<|end|>"], stream=True):
-            token = chunk["choices"][0]["text"]
-            response_text += token
-            print(token, end="", flush=True)
-            time.sleep(0.01)
+        # Generate response with tighter control
+        output = llm(
+            prompt=full_prompt,
+            max_tokens=80,
+            temperature=0.6, #0.7
+            top_p=0.9,
+            stop=["<|user|>", "<|system|>", "<|end|>", "</s>", "\n<|"],
+            repeat_penalty=1.3
+        )
+        response = output["choices"][0]["text"]
+        print(response)
 
-        print("\n")
+        sys.stdout.flush()
+        print()
+
 
 except KeyboardInterrupt:
-    print("\n👋 Exiting.")
+    print("\nExiting.")
+
+
