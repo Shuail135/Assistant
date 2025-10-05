@@ -9,7 +9,7 @@ import importlib.util
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from tts_controller import speak
-
+from pathlib import Path
 
 # File paths
 CSV_FILE = "intents.csv"
@@ -17,7 +17,24 @@ EMBEDDINGS_FILE = "./intents/intent_embeddings.npy"
 LABELS_FILE = "./intents/intent_labels.pkl"
 INTENT_FOLDER = "intents"
 
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+
+MODEL_DIR = Path(__file__).resolve().parent / "intents" / "all-MiniLM-L6-v2"
+
+if not MODEL_DIR.exists():
+    raise FileNotFoundError(
+        f"Local model not found at {MODEL_DIR}. "
+        "Download it once with `huggingface-cli download ...` and place it here."
+    )
+try:
+    embedder = SentenceTransformer(str(MODEL_DIR))
+except Exception as e:
+    raise RuntimeError(
+        "Cannot load embeddings model offline. "
+        "Make sure the local model folder exists and offline env vars are set."
+    ) from e
 
 
 # Build embedding cache
