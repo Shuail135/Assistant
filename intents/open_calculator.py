@@ -1,12 +1,15 @@
 import re
 from number_parser import parse
 
+YELLOW = "\033[33m"
+RESET = "\033[0m"
+
 def run(request_input):
     math_in_english = request_input("Tell me the expression: ")
     expression = convert_english_math_to_expression(math_in_english)
-    print(f"Calculating '{expression}'")
+    print(f"{YELLOW}Calculating '{expression}'{RESET}")
     result = safe_evaluate(expression)
-    print("Result:", result)
+    print(f"{YELLOW}Result:, {result}{RESET}")
     return f"The result is... '{result}.'"
 
 

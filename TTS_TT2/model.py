@@ -426,12 +426,15 @@ class Decoder(nn.Module):
         mel_outputs: mel outputs from the decoder
         gate_outputs: gate outputs from the decoder
         alignments: sequence of attention weights from the decoder
+        hit_max_step: notify when it hit max decoder step
         """
         decoder_input = self.get_go_frame(memory)
 
         self.initialize_decoder_states(memory, mask=None)
 
         mel_outputs, gate_outputs, alignments = [], [], []
+        hit_max_steps = False
+
         while True:
             decoder_input = self.prenet(decoder_input)
             mel_output, gate_output, alignment = self.decode(decoder_input)
@@ -443,15 +446,16 @@ class Decoder(nn.Module):
             if torch.sigmoid(gate_output.data) > self.gate_threshold:
                 break
             elif len(mel_outputs) == self.max_decoder_steps:
-                print("Warning! Reached max decoder steps")
+                hit_max_steps = True
                 break
 
             decoder_input = mel_output
 
         mel_outputs, gate_outputs, alignments = self.parse_decoder_outputs(
-            mel_outputs, gate_outputs, alignments)
+            mel_outputs, gate_outputs, alignments
+        )
 
-        return mel_outputs, gate_outputs, alignments
+        return mel_outputs, gate_outputs, alignments, hit_max_steps
 
 
 class Tacotron2(nn.Module):
@@ -517,13 +521,17 @@ class Tacotron2(nn.Module):
     def inference(self, inputs):
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
         encoder_outputs = self.encoder.inference(embedded_inputs)
-        mel_outputs, gate_outputs, alignments = self.decoder.inference(
-            encoder_outputs)
+
+        mel_outputs, gate_outputs, alignments, hit_max_steps = self.decoder.inference(
+            encoder_outputs
+        )
 
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
         outputs = self.parse_output(
-            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
+            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments]
+        )
 
-        return outputs
+        return outputs, hit_max_steps
+

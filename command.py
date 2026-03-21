@@ -10,6 +10,10 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from tts_controller import speak
 from pathlib import Path
+from llm import generate
+
+YELLOW = "\033[33m"
+RESET = "\033[0m"
 
 # File paths
 CSV_FILE = "intents.csv"
@@ -101,10 +105,11 @@ def handle_command(text, request_input, similarity_threshold):
     max_score = similarities[max_index]
     best_intent = intent_labels[max_index]
 
-    print(f"[command.py]: Best match: {best_intent} (score: {max_score:.3f})")
-
     if max_score < similarity_threshold:
-        speak("I’m not sure what you mean.")
+        respond = generate(text)
+        print(f"{YELLOW}{respond}{RESET}")
+        speak(respond)
         return
 
+    print(f"[command.py]: Best match: {best_intent} (score: {max_score:.3f})")
     run_intent_action(best_intent, request_input)
