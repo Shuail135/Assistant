@@ -19,6 +19,8 @@ from TTS_TT2.text import text_to_sequence
 
 from settings.settings_config import get_settings
 
+from audio_state import tts_playing
+
 tacotron2 = None
 hparams = None
 hifigan = None
@@ -168,7 +170,7 @@ def speak(text: str, test=False):
             text.count(";") * 20
     )
 
-    estimated_steps = max(250, int(seq_len * 8.5) + pause_bonus)
+    estimated_steps = max(250, int(seq_len * 9.5) + pause_bonus)
     dynamic_steps = min(user_max_steps, estimated_steps)
 
     tacotron2.decoder.max_decoder_steps = dynamic_steps
@@ -182,85 +184,103 @@ def speak(text: str, test=False):
     )
 
     best_final = None
+    use_max_on_next_attempt = False
+    tts_playing.set()
+    try:
+        with torch.no_grad():
+            for attempt in range(1, 4):
 
-    best_final = None
+                if use_max_on_next_attempt:
+                    tacotron2.decoder.max_decoder_steps = dynamic_steps * 2
+                    print(f"[TTS] [{attempt}/3] Retrying with increased decoder steps: {dynamic_steps * 2}")
+                else:
+                    tacotron2.decoder.max_decoder_steps = dynamic_steps
+                    print(f"[TTS] [{attempt}/3] Using dynamic decoder steps: {dynamic_steps}")
 
-    with torch.no_grad():
-        for attempt in range(1, 4):
-            mel_outputs, mel_postnet, hit_max_steps = synthesize_once(tacotron2, sequence)
+                mel_outputs, mel_postnet, hit_max_steps = synthesize_once(tacotron2, sequence)
 
-            actual_steps = mel_postnet.shape[2]
-            print(f"[TTS] actual_steps={actual_steps}")
+                actual_steps = mel_postnet.shape[2]
+                print(f"[TTS] actual_steps={actual_steps}")
 
-            if hit_max_steps:
-                print(f"[TTS] [{attempt}/3] Retrying... (hit_max_steps)")
-                continue
+                if hit_max_steps:
+                    print(f"[TTS] [{attempt}/3] Retrying... (hit_max_steps)")
 
-            y_hat = hifigan(mel_postnet)
-            audio = y_hat.squeeze().cpu().numpy() * MAX_WAV_VALUE
-            audio = denoiser(torch.tensor(audio).unsqueeze(0), strength=denoiser_strength).squeeze().numpy()
+                    if attempt == 3:
+                        print("[TTS] Using last hit_max_steps attempt as final audio")
+                        use_max_on_next_attempt = False
+                        break
 
-            normalize = (MAX_WAV_VALUE / np.max(np.abs(audio))) ** 0.9
-            audio *= normalize
+                    # increase dynamic steps for the next retry
+                    dynamic_steps = min(user_max_steps, int(dynamic_steps * 1.2))
+                    print(f"[TTS] Increasing dynamic decoder steps to: {dynamic_steps}")
 
-            wave = resampy.resample(
-                audio, h.sampling_rate, h2.sampling_rate,
-                filter="sinc_window", window=scipy.signal.windows.hann, num_zeros=8
-            )
-            wave = wave / MAX_WAV_VALUE
-            wave_tensor = torch.FloatTensor(wave).unsqueeze(0)
+                    use_max_on_next_attempt = False
+                    continue
 
-            mel_sr, bad_range, y_min, y_max = mel_spectrogram(
-                wave_tensor,
-                h2.n_fft,
-                h2.num_mels,
-                h2.sampling_rate,
-                h2.hop_size,
-                h2.win_size,
-                h2.fmin,
-                h2.fmax,
-                return_range_status=True
-            )
+                y_hat = hifigan(mel_postnet)
+                audio = y_hat.squeeze().cpu().numpy() * MAX_WAV_VALUE
+                audio = denoiser(torch.tensor(audio).unsqueeze(0), strength=denoiser_strength).squeeze().numpy()
 
-            y_sr = hifigan_sr(mel_sr).squeeze().cpu().numpy() * MAX_WAV_VALUE
-            y_sr = denoiser_sr(torch.tensor(y_sr).unsqueeze(0), strength=denoiser_strength).squeeze().numpy()
+                normalize = (MAX_WAV_VALUE / np.max(np.abs(audio))) ** 0.9
+                audio *= normalize
 
-            b = scipy.signal.firwin(101, cutoff=10500, fs=h2.sampling_rate, pass_zero=False)
-            y_hp = scipy.signal.lfilter(b, [1.0], y_sr)
-            y_hp *= superres_strength
+                wave = resampy.resample(
+                    audio, h.sampling_rate, h2.sampling_rate,
+                    filter="sinc_window", window=scipy.signal.windows.hann, num_zeros=8
+                )
+                wave = wave / MAX_WAV_VALUE
+                wave_tensor = torch.FloatTensor(wave).unsqueeze(0)
 
-            wave_out = (wave * MAX_WAV_VALUE).astype(np.int16)
-            final = wave_out[:len(y_hp)] + y_hp[:len(wave_out)]
-            final = final / normalize
+                mel_sr, bad_range, y_min, y_max = mel_spectrogram(
+                    wave_tensor,
+                    h2.n_fft,
+                    h2.num_mels,
+                    h2.sampling_rate,
+                    h2.hop_size,
+                    h2.win_size,
+                    h2.fmin,
+                    h2.fmax,
+                    return_range_status=True
+                )
 
-            best_final = final
+                y_sr = hifigan_sr(mel_sr).squeeze().cpu().numpy() * MAX_WAV_VALUE
+                y_sr = denoiser_sr(torch.tensor(y_sr).unsqueeze(0), strength=denoiser_strength).squeeze().numpy()
 
-            if bad_range:
-                print(f"[TTS] [{attempt}/3] Retrying... (bad_range, y_min={y_min:.4f}, y_max={y_max:.4f})")
-                continue
+                b = scipy.signal.firwin(101, cutoff=10500, fs=h2.sampling_rate, pass_zero=False)
+                y_hp = scipy.signal.lfilter(b, [1.0], y_sr)
+                y_hp *= superres_strength
 
-            break
-        else:
-            print("[TTS] Using best attempt for final audio")
-            final = best_final
+                wave_out = (wave * MAX_WAV_VALUE).astype(np.int16)
+                final = wave_out[:len(y_hp)] + y_hp[:len(wave_out)]
+                final = final / normalize
 
-        if final is None:
-            print("[TTS] ERROR: No valid audio generated after retries.")
-            return
+                best_final = final
 
-        silence = np.zeros(int(h2.sampling_rate * 0.3), dtype=np.int16)
-        final = np.concatenate([silence, final.astype(np.int16), silence])
+                if bad_range:
+                    print(f"[TTS] [{attempt}/3] Retrying... (bad_range, y_min={y_min:.4f}, y_max={y_max:.4f})")
+                    use_max_on_next_attempt = True
 
-        # print(f"[TTS] Speaking: \"{text}\"")
-        silence = np.zeros(int(h2.sampling_rate * 0.3), dtype=np.int16)
-        final = np.concatenate([silence, final.astype(np.int16), silence])
+                    if attempt == 3:
+                        print("[TTS] Using last bad_range attempt as final audio")
+                        break
 
-        volume = get_settings()["volume"]
+                    continue
 
-        final = final * np.clip(volume, 0.0, 1.0)
+                break
+            else:
+                print("[TTS] Using best attempt for final audio")
+                final = best_final
 
-        sd.play(final.astype(np.int16), samplerate=h2.sampling_rate)
-        sd.wait()
+            silence = np.zeros(int(h2.sampling_rate * 0.3), dtype=np.int16)
+            final = np.concatenate([silence, final.astype(np.int16), silence])
+
+            volume = get_settings()["volume"]
+            final = final * np.clip(volume, 0.0, 1.0)
+
+            sd.play(final.astype(np.int16), samplerate=h2.sampling_rate)
+            sd.wait()
+    finally:
+         tts_playing.clear()
 
 # For testing speaking
 if __name__ == "__main__":

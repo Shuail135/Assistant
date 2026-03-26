@@ -9,7 +9,7 @@ def run(request_input):
     expression = convert_english_math_to_expression(math_in_english)
     print(f"{YELLOW}Calculating '{expression}'{RESET}")
     result = safe_evaluate(expression)
-    print(f"{YELLOW}Result:, {result}{RESET}")
+    print(f"{YELLOW}Result: {result}{RESET}")
     return f"The result is... '{result}.'"
 
 

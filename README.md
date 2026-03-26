@@ -8,15 +8,15 @@ The project is designed to work entirely on CPU — no GPU is required.
 
 ---
 
-## ⚙️ Project Setup & Usage
+##  Project Setup & Usage
 
 This section includes both full setup instructions and usage guide.
 
-### 1️⃣ Clone Repository
+### 1. Clone Repository
 
 Clone your repository (or prepare your local project folder).
 
-### 2️⃣ Install Required Packages
+### 2. Install Required Packages
 
 The project dependencies are listed in `requirements.txt`. Install them using:
 
@@ -24,18 +24,18 @@ The project dependencies are listed in `requirements.txt`. Install them using:
 pip install -r requirements.txt
 ```
 
-✅ Make sure you are using Python 3.9+.(Tested environment: Python 3.10)
+Make sure you are using Python 3.9+.(Tested environment: Python 3.10)
 
 Since this project is CPU-only, no CUDA or GPU configuration is necessary.
 
-### 3️⃣ Prepare Custom Tacotron 2 Model
+### 3. Prepare Custom Tacotron 2 Model
 
 - Train or download a pre-trained Tacotron 2 model (e.g. [Model from Hugging Face][hugging_face]).
 - Place your Tacotron 2 checkpoint file inside the `tts_model/` directory. (Recommend)
 
 [hugging_face]: https://huggingface.co/models?sort=trending&search=tacotron2
 
-### 4️⃣ Update Tacotron 2 Model Path
+### 4. Update Tacotron 2 Model Path
 
 - Run `settings.py`.
 ```bash
@@ -45,7 +45,7 @@ python settings.py
 - Update the TTS model path to your Tacotron 2 model
 - Adjust other settings if needed
 
-### 5️⃣ Run the Voice Assistant
+### 5. Run the Voice Assistant
 
 Finally, start your assistant by running:
 
@@ -59,12 +59,11 @@ The assistant will start taking voice/text commands and respond using your custo
 
 ## 🔧 Notes
 
-- ✅ Fully CPU compatible (but slower inference compared to GPU).
-- ✅ No CUDA or GPU drivers required.
-- ✅ Everything operates locally.
-- ✅ The model will try to understand your intent through your human text, and find the most suitable intent for you.
-- ⚠️ This README assumes you already have a trained Tacotron 2 model; trained model is not included.
-
+- Fully CPU compatible (but slower inference compared to GPU).
+No CUDA or GPU drivers required.
+- Everything operates locally.
+- The model will try to understand your intent through your human text, and find the most suitable intent for you.
+- Pass through LLM if couldn't find corresponding intent
 ---
 
 ## Current Development
@@ -80,5 +79,5 @@ The assistant will start taking voice/text commands and respond using your custo
     - Open Settings
     - Reload Model (after modified TTS settings, reload model to apply changes)
 - With GUI real time settings ✅
-- Will build a local speech to text(or even your only voice recognization lets see)
-- Building Gernative AI (TinyLLaMA (1.1B) with llama.cpp + Prompt Engineering or LoRA)
+- Local speech to text using vosk models ✅
+- LLM (Qwen2.5 fine-tuned) ✅

@@ -1,6 +1,6 @@
 from llama_cpp import Llama
 
-MODEL_PATH = "./LLM/glados-qwen25-05b-f16.gguf"
+MODEL_PATH = "./LLM/glados-qwen25-05b-f32.gguf"
 
 SYSTEM_PROMPT = (
     "You are a dry, intelligent assistant with a GLaDOS-like tone. "
@@ -37,7 +37,7 @@ def load_model():
 
 def generate(user_input: str,
              max_tokens: int = 100,
-             temperature: float = 0.6,
+             temperature: float = 0.75,
              top_p: float = 0.9,
              repeat_penalty: float = 1.15) -> str:
     llm = load_model()
